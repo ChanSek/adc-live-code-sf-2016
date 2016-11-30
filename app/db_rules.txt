@@ -6,6 +6,10 @@
       "$uid": {
         ".write": "auth.uid == $uid"
       }
+    },
+
+  	"pictures": {
+      ".write": "auth != null"
     }
   }
 }

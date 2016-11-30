@@ -30,6 +30,12 @@
         android:text="Upload"
         />
 
+    <EditText
+        android:id="@+id/et_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
     <ProgressBar
         android:id="@+id/pb"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"

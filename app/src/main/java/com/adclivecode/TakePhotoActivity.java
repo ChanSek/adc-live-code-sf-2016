@@ -11,8 +11,10 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
@@ -20,6 +22,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -27,11 +32,13 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.UUID;
 
 public class TakePhotoActivity extends AppCompatActivity {
 
     private static final int RC_IMAGE_CAPTURE = 1;
+    private static final String LOG_TAG = "TakePhotoActivity";
 
     String currentPhotoPath;
     private ImageView ivPic;
@@ -40,6 +47,7 @@ public class TakePhotoActivity extends AppCompatActivity {
     private Button uploadButton;
     private ProgressBar pb;
     private UUID uuid;
+    private EditText etTitle;
 
 
     @Override
@@ -71,6 +79,8 @@ public class TakePhotoActivity extends AppCompatActivity {
                 uploadPicture();
             }
         });
+
+        etTitle = (EditText) findViewById(R.id.et_title);
 
         pb = (ProgressBar) findViewById(R.id.pb);
         pb.setVisibility(View.GONE);
@@ -155,6 +165,9 @@ public class TakePhotoActivity extends AppCompatActivity {
     }
 
     private void uploadPicture() {
+        uploadButton.setEnabled(false);
+        etTitle.setEnabled(false);
+
         FirebaseStorage storage = FirebaseStorage.getInstance();
         final StorageReference reference = storage.getReference("/pictures/" + uuid.toString() + ".jpg");
         final UploadTask uploadTask = reference.putFile(Uri.fromFile(new File(currentPhotoPath)));
@@ -167,6 +180,7 @@ public class TakePhotoActivity extends AppCompatActivity {
         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                writePictureToDb(taskSnapshot);
                 finish();
             }
         });
@@ -177,6 +191,21 @@ public class TakePhotoActivity extends AppCompatActivity {
                 pb.setMax((int) taskSnapshot.getTotalByteCount());
             }
         });
+    }
+
+    private void writePictureToDb(UploadTask.TaskSnapshot taskSnapshot) {
+        Log.d(LOG_TAG, "Writing to database " + uuid);
+        final FirebaseDatabase db = FirebaseDatabase.getInstance();
+        final DatabaseReference picture = db.getReference("/pictures/" + uuid.toString());
+        final PictureMetadata meta = new PictureMetadata();
+        meta.uuid = uuid.toString();
+        meta.owner = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        meta.size = (int) taskSnapshot.getMetadata().getSizeBytes();
+        meta.filePath = taskSnapshot.getMetadata().getPath();
+        meta.downloadUrl = taskSnapshot.getDownloadUrl().toString();
+        meta.timestamp = taskSnapshot.getMetadata().getCreationTimeMillis();
+        meta.title = etTitle.getText().toString();
+        picture.setValue(meta);
     }
 
 }
