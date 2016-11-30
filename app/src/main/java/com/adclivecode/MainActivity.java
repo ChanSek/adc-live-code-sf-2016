@@ -7,6 +7,8 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -15,10 +17,12 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
 import org.w3c.dom.Text;
 
@@ -30,9 +34,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = "MainActivity";
 
     private TextView tvHello;
+    private RecyclerView rv;
 
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
     private final FirebaseDatabase db = FirebaseDatabase.getInstance();
+    private FirebaseRecyclerAdapter<PictureMetadata, PictureViewHolder> adapter;
 
     private FirebaseAuth.AuthStateListener authStateListener = new FirebaseAuth.AuthStateListener() {
         @Override
@@ -64,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         tvHello = (TextView) findViewById(R.id.tv_hello);
+
+        rv = (RecyclerView) findViewById(R.id.rv);
+        rv.setLayoutManager(new LinearLayoutManager(this));
     }
 
     @Override
@@ -76,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         auth.removeAuthStateListener(authStateListener);
+        stopSynchronizingPictures();
     }
 
     @Override
@@ -113,14 +123,34 @@ public class MainActivity extends AppCompatActivity {
     private void updateViews() {
         final FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
-            String name = user.getDisplayName();
-            if (name == null) {
-                name = "unnamed user";
-            }
-            tvHello.setText(name);
+            tvHello.setVisibility(View.GONE);
+            rv.setVisibility(View.VISIBLE);
+            startSynchronizingPictures();
         }
         else {
+            tvHello.setVisibility(View.VISIBLE);
             tvHello.setText("You should log in!");
+            rv.setVisibility(View.GONE);
+            stopSynchronizingPictures();
+        }
+    }
+
+    private void startSynchronizingPictures() {
+        final DatabaseReference pictures = db.getReference("/pictures");
+        final Query query = pictures.orderByChild("timestamp");
+        adapter = new FirebaseRecyclerAdapter<PictureMetadata, PictureViewHolder>(PictureMetadata.class, android.R.layout.simple_list_item_2, PictureViewHolder.class, query) {
+            @Override
+            protected void populateViewHolder(PictureViewHolder viewHolder, PictureMetadata metadata, int position) {
+                viewHolder.setPicture(metadata);
+            }
+        };
+        rv.setAdapter(adapter);
+    }
+
+    private void stopSynchronizingPictures() {
+        if (adapter != null) {
+            adapter.cleanup();
+            adapter = null;
         }
     }
 
