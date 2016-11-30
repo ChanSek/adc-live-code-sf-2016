@@ -6,8 +6,9 @@
         android:name="android.hardware.camera"
         android:required="true"/>
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-                     android:maxSdkVersion="18" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18"/>
 
     <application
         android:allowBackup="true"
@@ -41,6 +42,8 @@
                 android:resource="@xml/file_paths"/>
         </provider>
 
+        <activity android:name=".ViewPictureActivity">
+        </activity>
     </application>
 
 </manifest>

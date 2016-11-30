@@ -1,6 +1,8 @@
 package com.adclivecode;
 
-public class PictureMetadata {
+import java.io.Serializable;
+
+public class PictureMetadata implements Serializable {
 
     public String uuid;
     public int size;
