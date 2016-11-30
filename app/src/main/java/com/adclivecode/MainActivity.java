@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        auth.removeAuthStateListener(authStateListener);
     }
 
     @Override
