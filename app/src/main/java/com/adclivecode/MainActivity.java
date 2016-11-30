@@ -1,5 +1,6 @@
 package com.adclivecode;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -15,6 +16,8 @@ import android.widget.TextView;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.w3c.dom.Text;
 
@@ -28,10 +31,15 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvHello;
 
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
+    private final FirebaseDatabase db = FirebaseDatabase.getInstance();
+
     private FirebaseAuth.AuthStateListener authStateListener = new FirebaseAuth.AuthStateListener() {
         @Override
         public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
             updateViews();
+            if (firebaseAuth.getCurrentUser() != null) {
+                writeUserDataToDb(firebaseAuth.getCurrentUser());
+            }
         }
     };
 
@@ -113,6 +121,18 @@ public class MainActivity extends AppCompatActivity {
         else {
             tvHello.setText("You should log in!");
         }
+    }
+
+    private void writeUserDataToDb(FirebaseUser currentUser) {
+        final AppUser user = new AppUser();
+        user.uid = currentUser.getUid();
+        user.name = currentUser.getDisplayName();
+        final Uri photoUrl = currentUser.getPhotoUrl();
+        if (photoUrl != null) {
+            user.profilePicture = photoUrl.toString();
+        }
+        final DatabaseReference ref = db.getReference("/users/" + user.uid);
+        ref.setValue(user);
     }
 
 }
