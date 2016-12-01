@@ -206,6 +206,19 @@ public class TakePhotoActivity extends AppCompatActivity {
         meta.timestamp = taskSnapshot.getMetadata().getCreationTimeMillis();
         meta.title = etTitle.getText().toString();
         picture.setValue(meta);
+        sendNotificationToAllUsers(meta);
+    }
+
+    private void sendNotificationToAllUsers(PictureMetadata meta) {
+        NotificationJob job = new NotificationJob();
+
+        String uuid = UUID.randomUUID().toString();
+        job.uid = uuid;
+        job.pictureTitle = meta.title;
+        job.pictureUid = meta.uuid;
+
+        FirebaseDatabase.getInstance().getReference("/jobs/" + job.uid).setValue(job);
+
     }
 
 }

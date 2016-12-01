@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.w3c.dom.Text;
 
@@ -158,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
         final AppUser user = new AppUser();
         user.uid = currentUser.getUid();
         user.name = currentUser.getDisplayName();
+        user.fcmToken = FirebaseInstanceId.getInstance().getToken();
         final Uri photoUrl = currentUser.getPhotoUrl();
         if (photoUrl != null) {
             user.profilePicture = photoUrl.toString();

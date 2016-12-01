@@ -19,6 +19,7 @@ targetCompatibility = JavaVersion.VERSION_1_7
 dependencies {
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
     compile 'com.google.appengine:appengine:1.9.46'
+    compile 'com.google.firebase:firebase-admin:4.0.2'
 }
 
 gretty {
